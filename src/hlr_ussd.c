@@ -334,6 +334,14 @@ static int ss_tx_to_ms_ussd_7bit(struct ss_session *ss, uint8_t invoke_id, const
 	return ss_tx_to_ms(ss, OSMO_GSUP_MSGT_PROC_SS_RESULT, msg);
 }
 
+static int ss_tx_to_ms_ussd_ucs2(struct ss_session *ss, uint8_t invoke_id, const char *text, uint8_t len)
+{
+	struct msgb *msg = gsm0480_gen_ussd_resp_ucs2(invoke_id, text, len);
+	LOGPSS(ss, LOGL_INFO, "Tx USSD UCS2 '%s'\n", osmo_hexdump_nospc((void*)text, len));
+	OSMO_ASSERT(msg);
+	return ss_tx_to_ms(ss, OSMO_GSUP_MSGT_PROC_SS_RESULT, msg);
+}
+
 /***********************************************************************
  * Internal USSD Handlers
  ***********************************************************************/
@@ -372,10 +380,21 @@ static int handle_ussd_own_msisdn(struct ss_session *ss,
 static int handle_ussd_own_imsi(struct ss_session *ss,
 				const struct osmo_gsup_message *gsup, const struct ss_request *req)
 {
-	char buf[GSM0480_USSD_7BIT_STRING_LEN+1];
+	char buf[GSM0480_USSD_7BIT_STRING_LEN + 1];
 	snprintf(buf, sizeof(buf), "Your IMSI is %s", ss->imsi);
 	ss->state = OSMO_GSUP_SESSION_STATE_END;
 	ss_tx_to_ms_ussd_7bit(ss, req->invoke_id, buf);
+	return 0;
+}
+
+static int handle_ussd_test_ucs2(struct ss_session *ss,
+				const struct osmo_gsup_message *gsup, const struct ss_request *req)
+{
+	char buf[GSM0480_USSD_OCTET_STRING_LEN + 1];
+	memset(buf, 0, sizeof(buf));
+	strncpy(buf, "\xbd\x65\x0f\x6c\xdf\x98\x45\x73\xf2\x53", sizeof(buf));
+	ss->state = OSMO_GSUP_SESSION_STATE_END;
+	ss_tx_to_ms_ussd_ucs2(ss, req->invoke_id, buf, strlen(buf));
 	return 0;
 }
 
@@ -405,6 +424,10 @@ static const struct hlr_iuse hlr_iuses[] = {
 	{
 		.name = "test-idle",
 		.handle_ussd = handle_ussd_test_idle,
+	},
+	{
+		.name = "test-ucs2",
+		.handle_ussd = handle_ussd_test_ucs2,
 	},
 };
 
