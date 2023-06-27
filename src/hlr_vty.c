@@ -218,7 +218,7 @@ DEFUN(cfg_hlr_gsup_ipa_name,
 #define UROUTE_STR "Routing Configuration\n"
 #define PREFIX_STR "Prefix-Matching Route\n" "USSD Prefix\n"
 
-#define INT_CHOICE "(own-msisdn|own-imsi|test-idle)"
+#define INT_CHOICE "(own-msisdn|own-imsi|test-idle|test-ucs2)"
 #define INT_STR "Internal USSD Handler\n" \
 		"Respond with subscribers' own MSISDN\n" \
 		"Respond with subscribers' own IMSI\n" \
