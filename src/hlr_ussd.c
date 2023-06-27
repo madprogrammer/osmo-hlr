@@ -392,9 +392,20 @@ static int handle_ussd_test_ucs2(struct ss_session *ss,
 {
 	char buf[GSM0480_USSD_OCTET_STRING_LEN + 1];
 	memset(buf, 0, sizeof(buf));
-	strncpy(buf, "\xbd\x65\x0f\x6c\xdf\x98\x45\x73\xf2\x53", sizeof(buf));
+
+	FILE* ptr;
+    ptr = fopen("/tmp/test_ucs2", "r");
+
+    if (NULL == ptr) {
+        LOGPSS(ss, LOGL_ERROR, "UCS2 payload file couldn't be opened\n");
+		return 0;
+    }
+
+	size_t n_read = fread(buf, 1, GSM0480_USSD_OCTET_STRING_LEN, ptr);
+    fclose(ptr);
+
 	ss->state = OSMO_GSUP_SESSION_STATE_END;
-	ss_tx_to_ms_ussd_ucs2(ss, req->invoke_id, buf, strlen(buf));
+	ss_tx_to_ms_ussd_ucs2(ss, req->invoke_id, buf, n_read);
 	return 0;
 }
 
